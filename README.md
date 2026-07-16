@@ -1,5 +1,7 @@
 # Fuck AČR – Tester
 
+**Odkaz na aplikaci:** [https://mujmobil92.github.io/Fuck-ACR/](https://mujmobil92.github.io/Fuck-ACR/)
+
 Jednoduchý webový tester na procvičování otázek formou kvízu. Běží čistě v prohlížeči, žádný server ani instalace nejsou potřeba – stačí otevřít `index.html`.
 
 ## Jak to funguje
