@@ -5,11 +5,85 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tester</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" as="style"
+        onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" as="style"
+        onload="this.onload=null;this.rel='stylesheet'">
+    <noscript>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    </noscript>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
     <style>
         * {
             box-sizing: border-box;
+        }
+
+        /* LOADING OVERLAY - vlastní styly, nezávislé na Bootstrapu (musí fungovat, i než se CDN načte) */
+        #loadingOverlay {
+            position: fixed;
+            inset: 0;
+            background: #f8f9fa;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            z-index: 2000;
+            text-align: center;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            color: #495057;
+            transition: opacity .3s ease;
+        }
+
+        #loadingOverlay.loader-hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loader-spinner {
+            width: 42px;
+            height: 42px;
+            border: 4px solid #dee2e6;
+            border-top-color: #0d6efd;
+            border-radius: 50%;
+            animation: loaderSpin .8s linear infinite;
+        }
+
+        @keyframes loaderSpin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loader-text {
+            font-size: 15px;
+        }
+
+        .loader-slow {
+            display: none;
+            font-size: 13px;
+            color: #6c757d;
+            max-width: 280px;
+        }
+
+        .loader-slow.show {
+            display: block;
+        }
+
+        .loader-retry-btn {
+            margin-top: 10px;
+            border: 1px solid #adb5bd;
+            background: #fff;
+            border-radius: 8px;
+            padding: 6px 14px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .loader-retry-btn:active {
+            transform: scale(.97);
         }
 
         body {
@@ -181,6 +255,131 @@
             background: rgba(255, 255, 255, .15);
         }
 
+        /* TOASTY - v tmavém režimu jsou výchozí Bootstrap barvy příliš svítivé, ztlumíme je */
+        .dark .app-toast .toast-header.text-bg-danger {
+            background-color: #4a1c1f !important;
+            color: #f5c2c7 !important;
+        }
+
+        .dark .app-toast .toast-header.text-bg-warning {
+            background-color: #4d3c07 !important;
+            color: #ffe69c !important;
+        }
+
+        .dark .app-toast .toast-header.text-bg-success {
+            background-color: #103822 !important;
+            color: #a3d9b1 !important;
+        }
+
+        .dark .app-toast .toast-header.text-bg-info {
+            background-color: #0c3c4d !important;
+            color: #9eeaf9 !important;
+        }
+
+        .dark .app-toast .toast-body {
+            background: #242424;
+            color: #eee;
+        }
+
+        .dark .app-toast .toast-progress-wrap {
+            background: rgba(255, 255, 255, .1);
+        }
+
+        /* MODÁLNÍ OKNO V TMAVÉM REŽIMU */
+        .dark .modal-content {
+            background: #1e1e1e;
+            color: #eee;
+        }
+
+        /* ANIMACE */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(14px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .question-enter {
+            animation: fadeInUp .35s ease;
+        }
+
+        @keyframes shake {
+
+            10%,
+            90% {
+                transform: translateX(-1px);
+            }
+
+            20%,
+            80% {
+                transform: translateX(2px);
+            }
+
+            30%,
+            50%,
+            70% {
+                transform: translateX(-4px);
+            }
+
+            40%,
+            60% {
+                transform: translateX(4px);
+            }
+        }
+
+        .shake {
+            animation: shake .4s;
+        }
+
+        @keyframes popIn {
+            0% {
+                transform: scale(.8);
+                opacity: .5;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        #questionBox .bi-check-circle.text-success {
+            display: inline-block;
+            animation: popIn .45s ease;
+        }
+
+        .answer-label:active {
+            transform: scale(.98);
+        }
+
+        .btn:active {
+            transform: scale(.97);
+        }
+
+        #progress {
+            transition: width .4s ease;
+        }
+
+        /* STICKY HLAVIČKA */
+        .sticky-top {
+            z-index: 1030;
+        }
+
+        /* ZNÁMKA OPAKOVANÉ OTÁZKY */
+        .repeat-badge {
+            animation: fadeInUp .3s ease;
+        }
+
+        /* PATIČKA */
+        #appFooter {
+            opacity: .7;
+        }
+
         /* MOBIL */
         @media(max-width:576px) {
             body {
@@ -230,7 +429,22 @@
 
 <body class="bg-light d-flex align-items-center justify-content-center py-3">
 
+    <div id="loadingOverlay">
+        <div class="loader-spinner"></div>
+        <div class="loader-text">Načítání aplikace...</div>
+        <div id="loaderSlowMsg" class="loader-slow">
+            Načítání trvá déle než obvykle.<br>Zkontroluj připojení k internetu.
+            <br><button id="loaderRetryBtn" class="loader-retry-btn" type="button">Zkusit znovu</button>
+        </div>
+    </div>
+
     <div id="toastContainer"></div>
+
+    <div id="offlineBanner" class="alert alert-warning d-none text-center py-2 mb-2 w-100" style="max-width:650px">
+        <i class="bi bi-wifi-off"></i>
+        Nejsi připojen/a k internetu – zapni si Wi-Fi nebo mobilní data. Bez připojení se nenačte grafika a nahrávání
+        souborů je vypnuté.
+    </div>
 
     <div id="app" class="container">
 
@@ -241,19 +455,22 @@
                 <h5 class="mt-2">Načíst otázky</h5>
                 <p class="text-muted small">Vyber JSON soubor s otázkami</p>
                 <input id="fileInput" type="file" accept=".json" class="form-control">
+                <div id="fileNameDisplay" class="small text-muted mt-2"></div>
             </div>
         </div>
 
         <!-- TEST -->
         <div id="testPanel" class="d-none">
 
-            <div class="card shadow-sm mb-2">
+            <div class="card shadow-sm mb-2 sticky-top">
                 <div class="card-body">
                     <div class="top-bar">
                         <span id="topicBadge" class="badge text-bg-primary">Téma</span>
 
                         <div class="top-actions">
                             <button id="showAnswersBtn" class="btn btn-sm btn-outline-primary">Správné odpovědi</button>
+                            <button id="resetBtn" class="btn btn-sm btn-outline-danger"><i
+                                    class="bi bi-arrow-repeat"></i> Nový test</button>
                             <button id="themeBtn" class="btn btn-sm btn-outline-secondary"><i
                                     class="bi bi-moon"></i></button>
                         </div>
@@ -304,6 +521,29 @@
                 </div>
             </div>
         </div>
+
+        <footer id="appFooter" class="text-center text-muted small mt-3 mb-2">
+            &copy; 2026 &middot; verze 1.0
+        </footer>
+    </div>
+
+    <!-- POTVRZENÍ RESETU -->
+    <div class="modal fade" id="confirmResetModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body text-center p-4">
+                    <i class="bi bi-exclamation-triangle text-warning fs-1"></i>
+                    <h5 class="mt-2">Opravdu začít znovu?</h5>
+                    <p class="text-muted small mb-0">Aktuální průběh testu bude ztracen.</p>
+                </div>
+                <div class="modal-footer justify-content-center border-0 pt-0">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Zrušit</button>
+                    <button type="button" id="confirmResetBtn" class="btn btn-danger">
+                        <i class="bi bi-arrow-repeat"></i> Ano, začít znovu
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -311,9 +551,11 @@
         let questions = [];
         let currentQuestion = null;
         let totalQuestions = 0;
-        let number = 0;
         let correct = 0;
         let wrong = 0;
+        let remainingIds = new Set();
+        let attemptsMap = new Map();
+        const STORAGE_KEY = "testerState";
 
         const fileInput = document.getElementById("fileInput");
         const uploadPanel = document.getElementById("uploadPanel");
@@ -331,6 +573,122 @@
         const backBtn = document.getElementById("backBtn");
         const answerSearch = document.getElementById("answerSearch");
         const toastContainer = document.getElementById("toastContainer");
+        const offlineBanner = document.getElementById("offlineBanner");
+        const fileNameDisplay = document.getElementById("fileNameDisplay");
+        const resetBtn = document.getElementById("resetBtn");
+        const confirmResetModalEl = document.getElementById("confirmResetModal");
+        const confirmResetBtn = document.getElementById("confirmResetBtn");
+
+        // LOADING OVERLAY - zmizí, jakmile se stránka (vč. CSS/JS z CDN) plně načte
+        const loadingOverlay = document.getElementById("loadingOverlay");
+        const loaderSlowMsg = document.getElementById("loaderSlowMsg");
+        const loaderRetryBtn = document.getElementById("loaderRetryBtn");
+
+        function hideLoadingOverlay() {
+            loadingOverlay.classList.add("loader-hidden");
+            setTimeout(() => loadingOverlay.remove(), 350);
+        }
+
+        if (document.readyState === "complete") {
+            hideLoadingOverlay();
+        } else {
+            window.addEventListener("load", hideLoadingOverlay);
+        }
+
+        // Pokud načítání trvá nezvykle dlouho (pomalé/nestabilní připojení), nabídneme nápovědu a reload
+        if (!navigator.onLine) {
+            loaderSlowMsg.classList.add("show");
+        } else {
+            let slowLoadTimer = setTimeout(() => loaderSlowMsg.classList.add("show"), 6000);
+            window.addEventListener("load", () => clearTimeout(slowLoadTimer));
+        }
+
+        loaderRetryBtn.addEventListener("click", () => location.reload());
+
+        // OFFLINE / ONLINE STAV
+        function updateConnectionStatus() {
+            if (!navigator.onLine) {
+                offlineBanner.classList.remove("d-none");
+                fileInput.disabled = true;
+            } else {
+                offlineBanner.classList.add("d-none");
+                fileInput.disabled = false;
+            }
+        }
+
+        window.addEventListener("online", () => {
+            updateConnectionStatus();
+            showToast("Připojení k internetu bylo obnoveno.", "success");
+        });
+
+        window.addEventListener("offline", () => {
+            updateConnectionStatus();
+            showToast("Ztraceno připojení k internetu. Nahrávání souborů je dočasně vypnuté.", "warning");
+        });
+
+        updateConnectionStatus();
+
+        // ULOŽENÍ / OBNOVENÍ PRŮBĚHU TESTU
+        function saveState() {
+            try {
+                let state = {
+                    allQuestions,
+                    questions,
+                    currentQuestion,
+                    totalQuestions,
+                    correct,
+                    wrong,
+                    remainingIds: [...remainingIds],
+                    attemptsMap: [...attemptsMap],
+                    topic: topicSelect.value,
+                    metadataHTML: metadata.innerHTML
+                };
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+            } catch (e) { /* localStorage může být nedostupné, nevadí */ }
+        }
+
+        function clearSavedState() {
+            localStorage.removeItem(STORAGE_KEY);
+        }
+
+        function loadState() {
+            let raw;
+            try {
+                raw = localStorage.getItem(STORAGE_KEY);
+            } catch (e) {
+                return false;
+            }
+
+            if (!raw) return false;
+
+            try {
+                let state = JSON.parse(raw);
+                if (!state.allQuestions || !state.currentQuestion) return false;
+
+                allQuestions = state.allQuestions;
+                questions = state.questions;
+                currentQuestion = state.currentQuestion;
+                totalQuestions = state.totalQuestions;
+                correct = state.correct;
+                wrong = state.wrong;
+                remainingIds = new Set(state.remainingIds);
+                attemptsMap = new Map(state.attemptsMap);
+
+                loadTopics();
+                topicSelect.value = state.topic;
+                metadata.innerHTML = state.metadataHTML;
+
+                uploadPanel.classList.add("d-none");
+                testPanel.classList.remove("d-none");
+
+                updateStats();
+                renderQuestion();
+                showToast("Navázáno na rozpracovaný test.", "info");
+                return true;
+            } catch (e) {
+                return false;
+            }
+        }
 
         // ZOBRAZENÍ TOASTU
         function showToast(message, type = "danger", duration = 5000) {
@@ -402,9 +760,18 @@
 
             if (!file) return;
 
+            if (!navigator.onLine) {
+                showToast("Bez připojení k internetu nelze soubor nahrát.", "warning");
+                fileInput.value = "";
+                return;
+            }
+
+            fileNameDisplay.innerHTML = `<i class="bi bi-file-earmark-text"></i> ${file.name}`;
+
             if (!file.name.toLowerCase().endsWith(".json")) {
                 showToast("Vyber prosím soubor ve formátu .json.", "warning");
                 fileInput.value = "";
+                fileNameDisplay.innerHTML = "";
                 return;
             }
 
@@ -418,6 +785,7 @@
                 } catch (err) {
                     showToast("Soubor se nepodařilo načíst.", "danger");
                     fileInput.value = "";
+                    fileNameDisplay.innerHTML = "";
                     return;
                 }
 
@@ -426,12 +794,13 @@
                 if (error) {
                     showToast(error.message, error.type);
                     fileInput.value = "";
+                    fileNameDisplay.innerHTML = "";
                     return;
                 }
 
                 allQuestions = data.questions;
 
-                showMetadata(data);
+                showMetadata(data, file.name);
                 loadTopics();
 
                 uploadPanel.classList.add("d-none");
@@ -444,17 +813,19 @@
             reader.onerror = () => {
                 showToast("Soubor se nepodařilo přečíst.", "danger");
                 fileInput.value = "";
+                fileNameDisplay.innerHTML = "";
             };
 
             reader.readAsText(file);
         });
 
         // INFO
-        function showMetadata(data) {
+        function showMetadata(data, fileName) {
             metadata.innerHTML = `<div>Verze: <b>${data.version}</b></div>
                                 <div>Datum: <b>${data.date}</b></div>
                                 <div>Autor: <b>${data.author}</b></div>
-                                <div>${data.description}</div>`;
+                                <div>${data.description}</div>
+                                ${fileName ? `<div class="text-muted"><i class="bi bi-file-earmark-text"></i> ${fileName}</div>` : ""}`;
         }
 
         // TÉMATA
@@ -484,10 +855,14 @@
                 questions = structuredClone(allQuestions.filter(q => q.topic === topic));
             }
 
+            // KAŽDÉ OTÁZCE PŘIŘADÍME UNIKÁTNÍ ID, ABY ŠLO POZNAT OPAKOVÁNÍ A SPRÁVNĚ POČÍTAT POSTUP
+            questions.forEach((q, i) => q.__id = i + "_" + Math.random().toString(36).slice(2));
+
             shuffle(questions);
 
             totalQuestions = questions.length;
-            number = 0;
+            remainingIds = new Set(questions.map(q => q.__id));
+            attemptsMap = new Map();
             correct = 0;
             wrong = 0;
 
@@ -495,32 +870,51 @@
             showQuestion();
         }
 
-        // ZOBRAZENÍ OTÁZKY
+        // ZOBRAZENÍ OTÁZKY (posune frontu a vykreslí)
         function showQuestion() {
-            questionBox.innerHTML = "";
             if (questions.length === 0) {
+                questionBox.innerHTML = "";
                 info.innerHTML = "";
-                questionBox.innerHTML = `<div class="card shadow-sm">
+                progress.style.width = "100%";
+                questionBox.innerHTML = `<div class="card shadow-sm question-enter">
                                             <div class="card-body text-center p-4">
                                                 <i class="bi bi-check-circle text-success fs-1"></i>
                                                 <h5 class="mt-2">Hotovo</h5>
                                                 <p class="text-muted">Všechny otázky byly dokončeny.</p>
                                             </div>
                                         </div>`;
+                clearSavedState();
                 return;
             }
 
             currentQuestion = questions.shift();
-            number++;
-            topicBadge.textContent = currentQuestion.topic;
-            info.innerHTML = `Otázka ${number}/${totalQuestions}<br>
-                            Zbývá: ${questions.length + 1}`;
+            renderQuestion();
+        }
 
-            progress.style.width = ((number - 1) / totalQuestions * 100) + "%";
+        // VYKRESLENÍ AKTUÁLNÍ OTÁZKY (bez posunu fronty - používá se i při obnovení stavu)
+        function renderQuestion() {
+            questionBox.innerHTML = "";
+            topicBadge.textContent = currentQuestion.topic;
+
+            let answeredCount = totalQuestions - remainingIds.size;
+            info.innerHTML = `Otázka ${answeredCount + 1}/${totalQuestions}<br>
+                            Zbývá: ${remainingIds.size}`;
+
+            progress.style.width = (answeredCount / totalQuestions * 100) + "%";
+
             let card = document.createElement("div");
-            card.className = "card shadow-sm";
+            card.className = "card shadow-sm question-enter";
             let body = document.createElement("div");
             body.className = "card-body";
+
+            let attempts = attemptsMap.get(currentQuestion.__id) || 0;
+            if (attempts > 0) {
+                let repeatBadge = document.createElement("div");
+                repeatBadge.className = "badge text-bg-warning mb-2 repeat-badge";
+                repeatBadge.innerHTML = `<i class="bi bi-arrow-repeat"></i> Opakování otázky`;
+                body.appendChild(repeatBadge);
+            }
+
             let title = document.createElement("h5");
             title.textContent = currentQuestion.question;
             title.className = "mb-3";
@@ -535,6 +929,11 @@
 
             let form = document.createElement("div");
 
+            let send = document.createElement("button");
+            send.className = "btn btn-primary w-100 mt-2";
+            send.innerHTML = `<i class="bi bi-check"></i> Odeslat`;
+            send.disabled = true;
+
             answers.forEach((text) => {
                 let id = "answer_" + Math.random();
                 let input = document.createElement("input");
@@ -543,6 +942,7 @@
                 input.value = text;
                 input.id = id;
                 input.className = "answer-input";
+                input.addEventListener("change", () => { send.disabled = false; });
                 let label = document.createElement("label");
                 label.htmlFor = id;
                 label.className = "answer-label";
@@ -552,20 +952,22 @@
             });
 
             body.appendChild(form);
-
-            let send = document.createElement("button");
-            send.className = "btn btn-primary w-100 mt-2";
-            send.innerHTML = `<i class="bi bi-check"></i>Odeslat`;
             send.onclick = () => checkAnswer(card);
             body.appendChild(send);
             card.appendChild(body);
             questionBox.appendChild(card);
+
+            window.scrollTo({ top: 0, behavior: "smooth" });
+            saveState();
         }
 
         // KONTROLA ODPOVĚDI
         function checkAnswer(card) {
             let selected = card.querySelector("input[name='answer']:checked");
-            if (!selected) return;
+            if (!selected) {
+                showToast("Vyber prosím odpověď.", "warning");
+                return;
+            }
 
             let correctText = currentQuestion[currentQuestion.correct];
             let isCorrect = false;
@@ -584,7 +986,7 @@
                         label.classList.add("correct");
                         isCorrect = true;
                     } else {
-                        label.classList.add("wrong");
+                        label.classList.add("wrong", "shake");
                     }
                 }
 
@@ -595,12 +997,15 @@
 
             if (isCorrect) {
                 correct++;
+                remainingIds.delete(currentQuestion.__id);
             } else {
                 wrong++;
+                attemptsMap.set(currentQuestion.__id, (attemptsMap.get(currentQuestion.__id) || 0) + 1);
                 questions.push(currentQuestion);
             }
 
             updateStats();
+            saveState();
 
             let next = document.createElement("button");
             next.className = "btn btn-outline-primary w-100 mt-2";
@@ -693,13 +1098,61 @@
             document.body.classList.toggle("bg-dark");
 
             let icon = themeBtn.querySelector("i");
+            let isDark = document.body.classList.contains("dark");
 
-            if (document.body.classList.contains("dark")) {
-                icon.className = "bi bi-sun";
-            } else {
-                icon.className = "bi bi-moon";
-            }
+            icon.className = isDark ? "bi bi-sun" : "bi bi-moon";
+
+            try {
+                localStorage.setItem("theme", isDark ? "dark" : "light");
+            } catch (e) { /* nevadí, pokud localStorage není dostupné */ }
         });
+
+        // RESET / NOVÝ TEST
+        resetBtn.addEventListener("click", () => {
+            new bootstrap.Modal(confirmResetModalEl).show();
+        });
+
+        confirmResetBtn.addEventListener("click", () => {
+            clearSavedState();
+
+            allQuestions = [];
+            questions = [];
+            currentQuestion = null;
+            totalQuestions = 0;
+            correct = 0;
+            wrong = 0;
+            remainingIds = new Set();
+            attemptsMap = new Map();
+
+            fileInput.value = "";
+            fileNameDisplay.innerHTML = "";
+            metadata.innerHTML = "";
+            questionBox.innerHTML = "";
+            info.innerHTML = "";
+            stats.innerHTML = "";
+            progress.style.width = "0%";
+
+            testPanel.classList.add("d-none");
+            answersPanel.classList.add("d-none");
+            uploadPanel.classList.remove("d-none");
+
+            bootstrap.Modal.getInstance(confirmResetModalEl).hide();
+            showToast("Test byl resetován, můžeš nahrát nový soubor.", "info");
+        });
+
+        // OBNOVENÍ MOTIVU A ROZPRACOVANÉHO TESTU PO NAČTENÍ STRÁNKY
+        (function init() {
+            try {
+                if (localStorage.getItem("theme") === "dark") {
+                    document.body.classList.add("dark");
+                    document.body.classList.remove("bg-light");
+                    document.body.classList.add("bg-dark");
+                    themeBtn.querySelector("i").className = "bi bi-sun";
+                }
+            } catch (e) { /* nevadí, pokud localStorage není dostupné */ }
+
+            loadState();
+        })();
 
         // PROMÍCHÁNÍ
         function shuffle(arr) {
