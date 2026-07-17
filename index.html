@@ -121,7 +121,7 @@
             background: #f1f3f5;
         }
 
-        .answer-input:checked+.answer-label {
+        .answer-input:checked:not(:disabled)+.answer-label {
             border-color: #0d6efd;
             background: #e7f1ff;
         }
@@ -169,7 +169,7 @@
             background: #333;
         }
 
-        .dark .answer-input:checked+.answer-label {
+        .dark .answer-input:checked:not(:disabled)+.answer-label {
             background: #243b63;
             border-color: #6ea8fe;
         }
@@ -238,6 +238,8 @@
             max-width: 380px;
             overflow: hidden;
             border-radius: 10px;
+            background: #fff;
+            box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .15);
         }
 
         .toast-progress-wrap {
@@ -256,6 +258,11 @@
         }
 
         /* TOASTY - v tmavém režimu jsou výchozí Bootstrap barvy příliš svítivé, ztlumíme je */
+        .dark .app-toast {
+            background: #242424;
+            box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .5);
+        }
+
         .dark .app-toast .toast-header.text-bg-danger {
             background-color: #4a1c1f !important;
             color: #f5c2c7 !important;
@@ -365,6 +372,83 @@
             transition: width .4s ease;
         }
 
+        /* PŘECHOD MEZI PANELY (FLIP) */
+        #app {
+            perspective: 1200px;
+        }
+
+        .panel-flip-out {
+            animation: flipOut .4s ease forwards;
+        }
+
+        .panel-flip-in {
+            animation: flipIn .45s ease forwards;
+        }
+
+        @keyframes flipOut {
+            0% {
+                transform: rotateY(0deg);
+                opacity: 1;
+            }
+
+            100% {
+                transform: rotateY(-90deg);
+                opacity: 0;
+            }
+        }
+
+        @keyframes flipIn {
+            0% {
+                transform: rotateY(90deg);
+                opacity: 0;
+            }
+
+            100% {
+                transform: rotateY(0deg);
+                opacity: 1;
+            }
+        }
+
+        /* STAVY NAHRÁVACÍHO POLE */
+        .input-error {
+            border-color: #dc3545 !important;
+            box-shadow: 0 0 0 .2rem rgba(220, 53, 69, .25) !important;
+        }
+
+        .input-success {
+            border-color: #198754 !important;
+            box-shadow: 0 0 0 .2rem rgba(25, 135, 84, .25) !important;
+        }
+
+        @keyframes iconBounce {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            30% {
+                transform: translateY(-10px);
+            }
+
+            50% {
+                transform: translateY(0);
+            }
+
+            70% {
+                transform: translateY(-5px);
+            }
+        }
+
+        .icon-bounce {
+            display: inline-block;
+            animation: iconBounce .5s ease;
+        }
+
+        .file-name-enter {
+            animation: fadeInUp .3s ease;
+        }
+
         /* STICKY HLAVIČKA */
         .sticky-top {
             z-index: 1030;
@@ -451,7 +535,7 @@
         <!-- NAHRÁNÍ JSON -->
         <div id="uploadPanel" class="card shadow-sm">
             <div class="card-body text-center p-4">
-                <i class="bi bi-file-earmark-arrow-up fs-1"></i>
+                <i id="uploadIcon" class="bi bi-file-earmark-arrow-up fs-1"></i>
                 <h5 class="mt-2">Načíst otázky</h5>
                 <p class="text-muted small">Vyber JSON soubor s otázkami</p>
                 <input id="fileInput" type="file" accept=".json" class="form-control">
@@ -469,8 +553,10 @@
 
                         <div class="top-actions">
                             <button id="showAnswersBtn" class="btn btn-sm btn-outline-primary">Správné odpovědi</button>
-                            <button id="resetBtn" class="btn btn-sm btn-outline-danger"><i
-                                    class="bi bi-arrow-repeat"></i> Nový test</button>
+                            <button id="restartBtn" class="btn btn-sm btn-outline-warning"><i
+                                    class="bi bi-arrow-clockwise"></i> Obnovit</button>
+                            <button id="cancelBtn" class="btn btn-sm btn-outline-danger"><i
+                                    class="bi bi-x-circle"></i> Zrušit</button>
                             <button id="themeBtn" class="btn btn-sm btn-outline-secondary"><i
                                     class="bi bi-moon"></i></button>
                         </div>
@@ -491,8 +577,6 @@
                     <div class="progress mt-2" style="height:8px">
                         <div id="progress" class="progress-bar"></div>
                     </div>
-
-                    <div id="stats" class="small mt-2"></div>
 
                 </div>
             </div>
@@ -523,23 +607,23 @@
         </div>
 
         <footer id="appFooter" class="text-center text-muted small mt-3 mb-2">
-            &copy; 2026 &middot; verze 1.0
+            &copy; 2026 &middot; verze 1.1
         </footer>
     </div>
 
     <!-- POTVRZENÍ RESETU -->
-    <div class="modal fade" id="confirmResetModal" tabindex="-1">
+    <div class="modal fade" id="confirmActionModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-body text-center p-4">
                     <i class="bi bi-exclamation-triangle text-warning fs-1"></i>
-                    <h5 class="mt-2">Opravdu začít znovu?</h5>
-                    <p class="text-muted small mb-0">Aktuální průběh testu bude ztracen.</p>
+                    <h5 id="confirmActionTitle" class="mt-2">Opravdu?</h5>
+                    <p id="confirmActionText" class="text-muted small mb-0"></p>
                 </div>
                 <div class="modal-footer justify-content-center border-0 pt-0">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Zrušit</button>
-                    <button type="button" id="confirmResetBtn" class="btn btn-danger">
-                        <i class="bi bi-arrow-repeat"></i> Ano, začít znovu
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Zpět</button>
+                    <button type="button" id="confirmActionBtn" class="btn btn-danger">
+                        <i class="bi bi-arrow-repeat"></i> Potvrdit
                     </button>
                 </div>
             </div>
@@ -555,8 +639,11 @@
         let wrong = 0;
         let remainingIds = new Set();
         let attemptsMap = new Map();
+        let wrongHistory = new Map();
+        let pendingAction = null;
         const STORAGE_KEY = "testerState";
 
+        const appEl = document.getElementById("app");
         const fileInput = document.getElementById("fileInput");
         const uploadPanel = document.getElementById("uploadPanel");
         const testPanel = document.getElementById("testPanel");
@@ -565,7 +652,6 @@
         const topicBadge = document.getElementById("topicBadge");
         const questionBox = document.getElementById("questionBox");
         const metadata = document.getElementById("metadata");
-        const stats = document.getElementById("stats");
         const progress = document.getElementById("progress");
         const themeBtn = document.getElementById("themeBtn");
         const showAnswersBtn = document.getElementById("showAnswersBtn");
@@ -575,9 +661,13 @@
         const toastContainer = document.getElementById("toastContainer");
         const offlineBanner = document.getElementById("offlineBanner");
         const fileNameDisplay = document.getElementById("fileNameDisplay");
-        const resetBtn = document.getElementById("resetBtn");
-        const confirmResetModalEl = document.getElementById("confirmResetModal");
-        const confirmResetBtn = document.getElementById("confirmResetBtn");
+        const restartBtn = document.getElementById("restartBtn");
+        const cancelBtn = document.getElementById("cancelBtn");
+        const confirmActionModalEl = document.getElementById("confirmActionModal");
+        const confirmActionTitle = document.getElementById("confirmActionTitle");
+        const confirmActionText = document.getElementById("confirmActionText");
+        const confirmActionBtn = document.getElementById("confirmActionBtn");
+        const uploadIcon = document.getElementById("uploadIcon");
 
         // LOADING OVERLAY - zmizí, jakmile se stránka (vč. CSS/JS z CDN) plně načte
         const loadingOverlay = document.getElementById("loadingOverlay");
@@ -609,9 +699,11 @@
         function updateConnectionStatus() {
             if (!navigator.onLine) {
                 offlineBanner.classList.remove("d-none");
+                appEl.classList.add("d-none");
                 fileInput.disabled = true;
             } else {
                 offlineBanner.classList.add("d-none");
+                appEl.classList.remove("d-none");
                 fileInput.disabled = false;
             }
         }
@@ -640,6 +732,7 @@
                     wrong,
                     remainingIds: [...remainingIds],
                     attemptsMap: [...attemptsMap],
+                    wrongHistory: [...wrongHistory],
                     topic: topicSelect.value,
                     metadataHTML: metadata.innerHTML
                 };
@@ -673,6 +766,7 @@
                 wrong = state.wrong;
                 remainingIds = new Set(state.remainingIds);
                 attemptsMap = new Map(state.attemptsMap);
+                wrongHistory = new Map(state.wrongHistory || []);
 
                 loadTopics();
                 topicSelect.value = state.topic;
@@ -681,7 +775,6 @@
                 uploadPanel.classList.add("d-none");
                 testPanel.classList.remove("d-none");
 
-                updateStats();
                 renderQuestion();
                 showToast("Navázáno na rozpracovaný test.", "info");
                 return true;
@@ -754,6 +847,31 @@
             return null;
         }
 
+        // POMOCNÉ FUNKCE PRO ANIMACE
+        function flashInputError() {
+            fileInput.classList.remove("input-success");
+            fileInput.classList.add("input-error", "shake");
+            setTimeout(() => fileInput.classList.remove("input-error", "shake"), 500);
+        }
+
+        function flashInputSuccess() {
+            fileInput.classList.remove("input-error");
+            fileInput.classList.add("input-success");
+            setTimeout(() => fileInput.classList.remove("input-success"), 700);
+        }
+
+        // PLYNULÝ PŘECHOD MEZI PANELY (FLIP)
+        function transitionPanels(hidePanel, showPanel) {
+            hidePanel.classList.add("panel-flip-out");
+            setTimeout(() => {
+                hidePanel.classList.add("d-none");
+                hidePanel.classList.remove("panel-flip-out");
+                showPanel.classList.remove("d-none");
+                showPanel.classList.add("panel-flip-in");
+                setTimeout(() => showPanel.classList.remove("panel-flip-in"), 450);
+            }, 400);
+        }
+
         // NAČTENÍ JSON
         fileInput.addEventListener("change", e => {
             let file = e.target.files[0];
@@ -762,14 +880,23 @@
 
             if (!navigator.onLine) {
                 showToast("Bez připojení k internetu nelze soubor nahrát.", "warning");
+                flashInputError();
                 fileInput.value = "";
                 return;
             }
 
+            uploadIcon.classList.remove("icon-bounce");
+            void uploadIcon.offsetWidth; // restart animace
+            uploadIcon.classList.add("icon-bounce");
+
+            fileNameDisplay.classList.remove("file-name-enter");
+            void fileNameDisplay.offsetWidth;
             fileNameDisplay.innerHTML = `<i class="bi bi-file-earmark-text"></i> ${file.name}`;
+            fileNameDisplay.classList.add("file-name-enter");
 
             if (!file.name.toLowerCase().endsWith(".json")) {
                 showToast("Vyber prosím soubor ve formátu .json.", "warning");
+                flashInputError();
                 fileInput.value = "";
                 fileNameDisplay.innerHTML = "";
                 return;
@@ -784,6 +911,7 @@
                     data = JSON.parse(x.target.result);
                 } catch (err) {
                     showToast("Soubor se nepodařilo načíst.", "danger");
+                    flashInputError();
                     fileInput.value = "";
                     fileNameDisplay.innerHTML = "";
                     return;
@@ -793,6 +921,7 @@
 
                 if (error) {
                     showToast(error.message, error.type);
+                    flashInputError();
                     fileInput.value = "";
                     fileNameDisplay.innerHTML = "";
                     return;
@@ -802,16 +931,19 @@
 
                 showMetadata(data, file.name);
                 loadTopics();
+                flashInputSuccess();
 
-                uploadPanel.classList.add("d-none");
-                testPanel.classList.remove("d-none");
-
-                startTest();
                 showToast("Otázky byly úspěšně načteny.", "success");
+
+                setTimeout(() => {
+                    transitionPanels(uploadPanel, testPanel);
+                    startTest();
+                }, 250);
             };
 
             reader.onerror = () => {
                 showToast("Soubor se nepodařilo přečíst.", "danger");
+                flashInputError();
                 fileInput.value = "";
                 fileNameDisplay.innerHTML = "";
             };
@@ -863,10 +995,10 @@
             totalQuestions = questions.length;
             remainingIds = new Set(questions.map(q => q.__id));
             attemptsMap = new Map();
+            wrongHistory = new Map();
             correct = 0;
             wrong = 0;
 
-            updateStats();
             showQuestion();
         }
 
@@ -883,6 +1015,34 @@
                                                 <p class="text-muted">Všechny otázky byly dokončeny.</p>
                                             </div>
                                         </div>`;
+
+                if (wrongHistory.size > 0) {
+                    let card = questionBox.querySelector(".card-body");
+                    let wrap = document.createElement("div");
+                    wrap.className = "mt-3 text-start";
+                    wrap.innerHTML = `
+                        <button class="btn btn-outline-secondary btn-sm w-100" type="button"
+                                data-bs-toggle="collapse" data-bs-target="#wrongSummary">
+                            <i class="bi bi-eye"></i> Zobrazit otázky, ve kterých jsi chyboval/a (${wrongHistory.size})
+                        </button>
+                        <div class="collapse mt-2" id="wrongSummary"></div>
+                    `;
+                    card.appendChild(wrap);
+
+                    let list = wrap.querySelector("#wrongSummary");
+                    [...wrongHistory.values()].forEach((item, index) => {
+                        let entry = document.createElement("div");
+                        entry.className = "list-group-item rounded mb-2";
+                        entry.innerHTML = `
+                            <div class="fw-bold mb-2">${index + 1}. ${item.question}</div>
+                            <div class="text-success">
+                                <i class="bi bi-check-circle"></i> ${item.correctText}
+                            </div>
+                        `;
+                        list.appendChild(entry);
+                    });
+                }
+
                 clearSavedState();
                 return;
             }
@@ -896,11 +1056,7 @@
             questionBox.innerHTML = "";
             topicBadge.textContent = currentQuestion.topic;
 
-            let answeredCount = totalQuestions - remainingIds.size;
-            info.innerHTML = `Otázka ${answeredCount + 1}/${totalQuestions}<br>
-                            Zbývá: ${remainingIds.size}`;
-
-            progress.style.width = (answeredCount / totalQuestions * 100) + "%";
+            updateHeader();
 
             let card = document.createElement("div");
             card.className = "card shadow-sm question-enter";
@@ -1002,9 +1158,17 @@
                 wrong++;
                 attemptsMap.set(currentQuestion.__id, (attemptsMap.get(currentQuestion.__id) || 0) + 1);
                 questions.push(currentQuestion);
+
+                // ULOŽÍME DO HISTORIE CHYB - ZŮSTANE I POKUD OTÁZKU POZDĚJI ZODPOVÍ SPRÁVNĚ
+                if (!wrongHistory.has(currentQuestion.__id)) {
+                    wrongHistory.set(currentQuestion.__id, {
+                        question: currentQuestion.question,
+                        correctText: correctText
+                    });
+                }
             }
 
-            updateStats();
+            updateHeader();
             saveState();
 
             let next = document.createElement("button");
@@ -1015,20 +1179,20 @@
             card.querySelector(".card-body").appendChild(next);
         }
 
-        function updateStats() {
+        // AKTUALIZACE HLAVIČKY - POČET OTÁZEK, ZBÝVÁ, SKÓRE I PROGRESS BAR
+        function updateHeader() {
+            let answeredCount = totalQuestions - remainingIds.size;
             let done = correct + wrong;
-            let percent = 0;
-            if (done) {
-                percent = Math.round((correct / done) * 100);
-            }
+            let percent = done ? Math.round((correct / done) * 100) : 0;
 
-            stats.innerHTML = `
-        <i class="bi bi-check-circle text-success"></i> Správně: ${correct}
-        &nbsp;|&nbsp;
-        <i class="bi bi-x-circle text-danger"></i> Špatně: ${wrong}
-        &nbsp;|&nbsp;
-        Úspěšnost: ${percent}%
-    `;
+            info.innerHTML = `
+                Otázka ${answeredCount + 1}/${totalQuestions} &middot; Zbývá: ${remainingIds.size}<br>
+                <span class="text-success"><i class="bi bi-check-circle"></i> ${correct}</span>
+                <span class="text-danger ms-2"><i class="bi bi-x-circle"></i> ${wrong}</span>
+                <span class="ms-2">${percent}%</span>
+            `;
+
+            progress.style.width = (answeredCount / totalQuestions * 100) + "%";
         }
 
         // SPRÁVNÉ ODPOVĚDI
@@ -1107,37 +1271,65 @@
             } catch (e) { /* nevadí, pokud localStorage není dostupné */ }
         });
 
-        // RESET / NOVÝ TEST
-        resetBtn.addEventListener("click", () => {
-            new bootstrap.Modal(confirmResetModalEl).show();
+        // ZRUŠIT TEST - VRÁTÍ NA NAHRÁNÍ NOVÉHO SOUBORU
+        cancelBtn.addEventListener("click", () => {
+            pendingAction = "cancel";
+            confirmActionTitle.textContent = "Opravdu zrušit test?";
+            confirmActionText.textContent = "Aktuální průběh bude ztracen a budeš moct nahrát nový soubor.";
+            confirmActionBtn.className = "btn btn-danger";
+            confirmActionBtn.innerHTML = `<i class="bi bi-x-circle"></i> Ano, zrušit`;
+            new bootstrap.Modal(confirmActionModalEl).show();
         });
 
-        confirmResetBtn.addEventListener("click", () => {
-            clearSavedState();
+        // OBNOVIT - RESTARTUJE AKTUÁLNÍ TEST OD ZAČÁTKU (STEJNÉ OTÁZKY)
+        restartBtn.addEventListener("click", () => {
+            pendingAction = "restart";
+            confirmActionTitle.textContent = "Opravdu restartovat test?";
+            confirmActionText.textContent = "Skóre i pořadí otázek se vynulují, otázky zůstanou stejné.";
+            confirmActionBtn.className = "btn btn-warning";
+            confirmActionBtn.innerHTML = `<i class="bi bi-arrow-clockwise"></i> Ano, restartovat`;
+            new bootstrap.Modal(confirmActionModalEl).show();
+        });
 
-            allQuestions = [];
-            questions = [];
-            currentQuestion = null;
-            totalQuestions = 0;
-            correct = 0;
-            wrong = 0;
-            remainingIds = new Set();
-            attemptsMap = new Map();
+        confirmActionBtn.addEventListener("click", () => {
+            bootstrap.Modal.getInstance(confirmActionModalEl).hide();
 
-            fileInput.value = "";
-            fileNameDisplay.innerHTML = "";
-            metadata.innerHTML = "";
-            questionBox.innerHTML = "";
-            info.innerHTML = "";
-            stats.innerHTML = "";
-            progress.style.width = "0%";
+            if (pendingAction === "restart") {
+                answerSearch.value = "";
+                startTest();
+                showToast("Test byl restartován od začátku.", "info");
+            } else {
+                clearSavedState();
 
-            testPanel.classList.add("d-none");
-            answersPanel.classList.add("d-none");
-            uploadPanel.classList.remove("d-none");
+                allQuestions = [];
+                questions = [];
+                currentQuestion = null;
+                totalQuestions = 0;
+                correct = 0;
+                wrong = 0;
+                remainingIds = new Set();
+                attemptsMap = new Map();
+                wrongHistory = new Map();
 
-            bootstrap.Modal.getInstance(confirmResetModalEl).hide();
-            showToast("Test byl resetován, můžeš nahrát nový soubor.", "info");
+                fileInput.value = "";
+                fileNameDisplay.innerHTML = "";
+                metadata.innerHTML = "";
+                questionBox.innerHTML = "";
+                info.innerHTML = "";
+                progress.style.width = "0%";
+
+                answersPanel.classList.add("d-none");
+
+                if (!testPanel.classList.contains("d-none")) {
+                    transitionPanels(testPanel, uploadPanel);
+                } else {
+                    uploadPanel.classList.remove("d-none");
+                }
+
+                showToast("Test byl zrušen, můžeš nahrát nový soubor.", "info");
+            }
+
+            pendingAction = null;
         });
 
         // OBNOVENÍ MOTIVU A ROZPRACOVANÉHO TESTU PO NAČTENÍ STRÁNKY
