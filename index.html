@@ -462,16 +462,48 @@
             animation: fadeInUp .3s ease;
         }
 
+        /* IKONOVÁ TLAČÍTKA V ROHU (nahrávací panel) - stejný vzhled na PC i mobilu */
+        .upload-panel-actions {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            display: flex;
+            gap: 6px;
+            z-index: 5;
+        }
+
+        .icon-btn {
+            width: 34px;
+            height: 34px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-size: 15px;
+            line-height: 1;
+        }
+
+        .icon-btn i {
+            line-height: 1;
+        }
+
         /* PATIČKA */
         #appFooter {
             opacity: .7;
+        }
+
+        /* Ikona přidaná jen kvůli mobilnímu zobrazení - na PC se nezobrazuje,
+           aby vzhled desktopu zůstal přesně stejný jako dřív */
+        .mobile-only-icon {
+            display: none;
         }
 
         /* MOBIL */
         @media(max-width:576px) {
             body {
                 align-items: flex-start !important;
-                padding-top: 10px;
+                padding-top: 8px;
             }
 
             #app {
@@ -479,27 +511,94 @@
             }
 
             .card-body {
-                padding: 12px !important;
+                padding: 10px 12px !important;
             }
 
+            /* Horní lišta zůstane v jednom řádku - šetří výšku obrazovky */
             .top-bar {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .top-actions {
-                width: 100%;
-                flex-direction: column;
-            }
-
-            .top-actions button {
-                width: 100%;
-                justify-content: center;
+                flex-direction: row;
+                align-items: center;
+                flex-wrap: nowrap;
             }
 
             #topicBadge {
+                max-width: 42%;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                font-size: 12px;
+            }
+
+            .top-actions {
+                width: auto;
+                flex-direction: row;
+                gap: 6px;
+            }
+
+            /* Tlačítka jen jako ikony - bez textu, menší a čtvercová */
+            .top-actions .btn {
+                width: 34px;
+                height: 34px;
+                padding: 0;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 8px;
+                font-size: 15px;
+                line-height: 1;
+            }
+
+            .top-actions .btn i {
+                line-height: 1;
+                display: inline-flex;
+                align-items: center;
+            }
+
+            .info-br {
+                display: none;
+            }
+
+            .mobile-only-icon {
+                display: inline-block;
+            }
+
+            .btn-label {
+                display: none;
+            }
+
+            /* Metadata souboru (verze/datum/autor/popis) na testu nejsou potřeba - šetří místo */
+            #metadata {
+                display: none;
+            }
+
+            #topicSelect {
+                font-size: 13px;
+                padding: 6px 10px;
+                margin-top: 8px !important;
+            }
+
+            .test-header-info {
+                margin-top: 6px !important;
+                justify-content: flex-end;
+            }
+
+            #info {
+                font-size: 12px;
+                line-height: 1.3;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
                 width: 100%;
-                text-align: center;
+                gap: 8px;
+            }
+
+            .info-score {
+                white-space: nowrap;
+            }
+
+            .progress {
+                height: 6px !important;
+                margin-top: 8px !important;
             }
 
             h5 {
@@ -536,7 +635,13 @@
     <div id="app" class="container">
 
         <!-- NAHRÁNÍ JSON -->
-        <div id="uploadPanel" class="card shadow-sm">
+        <div id="uploadPanel" class="card shadow-sm position-relative">
+            <div class="upload-panel-actions">
+                <button id="uploadThemeBtn" type="button"
+                    class="btn btn-sm btn-outline-secondary icon-btn theme-toggle-btn" title="Přepnout motiv">
+                    <i class="bi bi-moon"></i>
+                </button>
+            </div>
             <div class="card-body text-center p-4">
                 <i id="uploadIcon" class="bi bi-file-earmark-arrow-up fs-1"></i>
                 <h5 class="mt-2">Načíst otázky</h5>
@@ -557,12 +662,14 @@
                         <span id="topicBadge" class="badge text-bg-primary">Téma</span>
 
                         <div class="top-actions">
-                            <button id="showAnswersBtn" class="btn btn-sm btn-outline-primary">Správné odpovědi</button>
+                            <button id="showAnswersBtn" class="btn btn-sm btn-outline-primary"><i
+                                    class="bi bi-list-check mobile-only-icon"></i><span class="btn-label">Správné
+                                    odpovědi</span></button>
                             <button id="restartBtn" class="btn btn-sm btn-outline-warning"><i
-                                    class="bi bi-arrow-clockwise"></i> Obnovit</button>
-                            <button id="cancelBtn" class="btn btn-sm btn-outline-danger"><i class="bi bi-x-circle"></i>
-                                Zrušit</button>
-                            <button id="themeBtn" class="btn btn-sm btn-outline-secondary"><i
+                                    class="bi bi-arrow-clockwise mobile-only-icon"></i><span class="btn-label">Obnovit</span></button>
+                            <button id="cancelBtn" class="btn btn-sm btn-outline-danger"><i class="bi bi-x-circle mobile-only-icon"></i><span
+                                    class="btn-label">Zrušit</span></button>
+                            <button id="themeBtn" class="btn btn-sm btn-outline-secondary theme-toggle-btn"><i
                                     class="bi bi-moon"></i></button>
                         </div>
                     </div>
@@ -612,7 +719,7 @@
         </div>
 
         <footer id="appFooter" class="text-center text-muted small mt-3 mb-2">
-            &copy; 2026 &middot; verze 1.1
+            &copy; 2026 &middot; verze 1.2
         </footer>
     </div>
 
@@ -671,6 +778,7 @@
         const confirmActionText = document.getElementById("confirmActionText");
         const confirmActionBtn = document.getElementById("confirmActionBtn");
         const uploadIcon = document.getElementById("uploadIcon");
+        const uploadThemeBtn = document.getElementById("uploadThemeBtn");
 
         // LOADING OVERLAY - zmizí, jakmile se stránka (vč. CSS/JS z CDN) plně načte
         const loadingOverlay = document.getElementById("loadingOverlay");
@@ -1176,13 +1284,28 @@
             let percent = done ? Math.round((correct / done) * 100) : 0;
 
             info.innerHTML = `
-                Otázka ${answeredCount + 1}/${totalQuestions} &middot; Zbývá: ${remainingIds.size}<br>
-                <span class="text-success"><i class="bi bi-check-circle"></i> ${correct}</span>
-                <span class="text-danger ms-2"><i class="bi bi-x-circle"></i> ${wrong}</span>
-                <span class="ms-2">${percent}%</span>
+                <span class="info-question">Otázka ${answeredCount + 1}/${totalQuestions} &middot; Zbývá: ${remainingIds.size}</span><br class="info-br">
+                <span class="info-score">
+                    <span class="text-success"><i class="bi bi-check-circle"></i> ${correct}</span>
+                    <span class="text-danger ms-2"><i class="bi bi-x-circle"></i> ${wrong}</span>
+                    <span class="ms-2">${percent}%</span>
+                </span>
             `;
 
             progress.style.width = (answeredCount / totalQuestions * 100) + "%";
+
+            // BARVA POSTUPU PODLE ÚSPĚŠNOSTI (volitelné v Nastavení)
+            progress.classList.remove("bg-success", "bg-warning", "bg-danger");
+
+            if (done > 0) {
+                if (percent >= 80) {
+                    progress.classList.add("bg-success");
+                } else if (percent >= 50) {
+                    progress.classList.add("bg-warning");
+                } else {
+                    progress.classList.add("bg-danger");
+                }
+            }
         }
 
         // SPRÁVNÉ ODPOVĚDI
@@ -1246,15 +1369,12 @@
         });
 
         // DARK MODE
-        themeBtn.addEventListener("click", () => {
-            document.body.classList.toggle("dark");
-            document.body.classList.toggle("bg-light");
-            document.body.classList.toggle("bg-dark");
-
-            let icon = themeBtn.querySelector("i");
-            let isDark = document.body.classList.contains("dark");
-
-            icon.className = isDark ? "bi bi-sun" : "bi bi-moon";
+        // NASTAVENÍ VZHLEDU (SVĚTLÝ/TMAVÝ) - sdílená logika pro obě theme tlačítka
+        // (v test panelu i v nahrávacím panelu) a pro automatický režim podle systému
+        function applyTheme(isDark) {
+            document.body.classList.toggle("dark", isDark);
+            document.body.classList.toggle("bg-light", !isDark);
+            document.body.classList.toggle("bg-dark", isDark);
 
             // BSForge komponenty (dropzone, otp...) stylují se přes Bootstrap
             // proměnné var(--bs-*), které se přepínají atributem data-bs-theme
@@ -1262,9 +1382,28 @@
             // přepnutí do tmavého režimu.
             document.documentElement.setAttribute("data-bs-theme", isDark ? "dark" : "light");
 
-            try {
-                localStorage.setItem("theme", isDark ? "dark" : "light");
-            } catch (e) { /* nevadí, pokud localStorage není dostupné */ }
+            document.querySelectorAll(".theme-toggle-btn i").forEach(icon => {
+                icon.className = isDark ? "bi bi-sun" : "bi bi-moon";
+            });
+        }
+
+        function toggleTheme() {
+            let isDark = !document.body.classList.contains("dark");
+            applyTheme(isDark);
+        }
+
+        const prefersDarkMql = window.matchMedia("(prefers-color-scheme: dark)");
+
+        function applySystemTheme() {
+            applyTheme(prefersDarkMql.matches);
+        }
+
+        prefersDarkMql.addEventListener("change", () => {
+            applySystemTheme();
+        });
+
+        document.querySelectorAll(".theme-toggle-btn").forEach(btn => {
+            btn.addEventListener("click", toggleTheme);
         });
 
         // ZRUŠIT TEST - VRÁTÍ NA NAHRÁNÍ NOVÉHO SOUBORU
@@ -1329,16 +1468,7 @@
 
         // OBNOVENÍ MOTIVU A ROZPRACOVANÉHO TESTU PO NAČTENÍ STRÁNKY
         (function init() {
-            try {
-                if (localStorage.getItem("theme") === "dark") {
-                    document.body.classList.add("dark");
-                    document.body.classList.remove("bg-light");
-                    document.body.classList.add("bg-dark");
-                    themeBtn.querySelector("i").className = "bi bi-sun";
-                    document.documentElement.setAttribute("data-bs-theme", "dark");
-                }
-            } catch (e) { /* nevadí, pokud localStorage není dostupné */ }
-
+            applySystemTheme();
             loadState();
         })();
 
