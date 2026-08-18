@@ -217,6 +217,14 @@
             gap: 6px;
         }
 
+        .topic-badges {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+            min-width: 0;
+        }
+
         .test-header-info {
             display: flex;
             justify-content: space-between;
@@ -529,6 +537,15 @@
                 font-size: 12px;
             }
 
+            #uncertainBadge {
+                font-size: 12px;
+                flex-shrink: 0;
+            }
+
+            #uncertainBadge .uncertain-badge-text {
+                display: none;
+            }
+
             .top-actions {
                 width: auto;
                 flex-direction: row;
@@ -650,6 +667,18 @@
                 <div data-bsforge="dropzone" id="jsonDropzone" data-accept=".json"
                     data-label="Přetáhni soubor sem nebo klikni pro výběr" data-onchange="handleDropzoneFiles">
                 </div>
+
+                <!-- ZÁLOŽNÍ VSTUP - zobrazí se pouze pokud se BSForge dropzone
+                     nestihne včas inicializovat (např. výpadek/pomalé CDN) -->
+                <div id="fallbackUpload" class="d-none mt-2">
+                    <div class="alert alert-warning small mb-2 text-start">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        Načítání komponenty pro nahrávání trvá déle než obvykle. Můžeš zkusit
+                        <a href="#" id="fallbackRetryLink">obnovit stránku</a>, nebo použít nahrávání níže.
+                    </div>
+                    <input id="fallbackFileInput" type="file" accept=".json"
+                        class="form-control" aria-label="Vybrat JSON soubor s otázkami">
+                </div>
             </div>
         </div>
 
@@ -659,9 +688,16 @@
             <div class="card shadow-sm mb-2 sticky-top">
                 <div class="card-body">
                     <div class="top-bar">
-                        <span id="topicBadge" class="badge text-bg-primary">Téma</span>
+                        <div class="topic-badges">
+                            <span id="topicBadge" class="badge text-bg-primary">Téma</span>
+                            <span id="uncertainBadge" class="badge text-bg-danger d-none" title="Odpověď u této otázky nemusí být 100% ověřená">
+                                <i class="bi bi-exclamation-triangle-fill"></i><span class="uncertain-badge-text"> Nejistá odpověď</span>
+                            </span>
+                        </div>
 
                         <div class="top-actions">
+                            <button id="infoBtn" class="btn btn-sm btn-outline-info d-none" type="button"><i
+                                    class="bi bi-info-circle mobile-only-icon"></i><span class="btn-label">Info</span></button>
                             <button id="showAnswersBtn" class="btn btn-sm btn-outline-primary"><i
                                     class="bi bi-list-check mobile-only-icon"></i><span class="btn-label">Správné
                                     odpovědi</span></button>
@@ -718,8 +754,28 @@
             </div>
         </div>
 
+        <!-- POZNÁMKA AUTORA -->
+        <div id="infoPanel" class="d-none">
+
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Poznámka autora</h5>
+                        <button id="infoBackBtn" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i>
+                            Zpět
+                        </button>
+                    </div>
+
+                    <div id="infoPanelBody" class="mt-3">
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <footer id="appFooter" class="text-center text-muted small mt-3 mb-2">
-            &copy; 2026 &middot; verze 1.3
+            &copy; 2026 &middot; verze 1.4
             
         </footer>
     </div>
@@ -762,6 +818,7 @@
         const answersPanel = document.getElementById("answersPanel");
         const topicSelect = document.getElementById("topicSelect");
         const topicBadge = document.getElementById("topicBadge");
+        const uncertainBadge = document.getElementById("uncertainBadge");
         const questionBox = document.getElementById("questionBox");
         const metadata = document.getElementById("metadata");
         const progress = document.getElementById("progress");
@@ -778,6 +835,10 @@
         const confirmActionTitle = document.getElementById("confirmActionTitle");
         const confirmActionText = document.getElementById("confirmActionText");
         const confirmActionBtn = document.getElementById("confirmActionBtn");
+        const infoBtn = document.getElementById("infoBtn");
+        const infoPanel = document.getElementById("infoPanel");
+        const infoPanelBody = document.getElementById("infoPanelBody");
+        const infoBackBtn = document.getElementById("infoBackBtn");
         const uploadIcon = document.getElementById("uploadIcon");
         const uploadThemeBtn = document.getElementById("uploadThemeBtn");
 
@@ -827,6 +888,41 @@
             if (api) api.reset();
         }
 
+        // ZÁLOŽNÍ NAHRÁVÁNÍ - pokud se BSForge dropzone (natahuje se z CDN)
+        // do pár sekund neinicializuje, např. kvůli výpadku/pomalému CDN,
+        // nabídneme obyčejný <input type="file">, aby appka zůstala použitelná.
+        const fallbackUpload = document.getElementById("fallbackUpload");
+        const fallbackFileInput = document.getElementById("fallbackFileInput");
+        const fallbackRetryLink = document.getElementById("fallbackRetryLink");
+
+        fallbackRetryLink.addEventListener("click", (e) => {
+            e.preventDefault();
+            location.reload();
+        });
+
+        fallbackFileInput.addEventListener("change", () => {
+            if (fallbackFileInput.files.length) {
+                handleDropzoneFiles(fallbackFileInput.files);
+            }
+        });
+
+        let dropzoneCheckAttempts = 0;
+        const dropzoneCheckInterval = setInterval(() => {
+            dropzoneCheckAttempts++;
+
+            if (getDropzoneApi()) {
+                // BSForge se v pořádku načetl, záložní vstup není potřeba
+                clearInterval(dropzoneCheckInterval);
+                return;
+            }
+
+            // Po ~8 sekundách (16 x 500ms) bez inicializace ukážeme fallback
+            if (dropzoneCheckAttempts >= 16) {
+                clearInterval(dropzoneCheckInterval);
+                fallbackUpload.classList.remove("d-none");
+            }
+        }, 500);
+
         // OFFLINE / ONLINE STAV
         function updateConnectionStatus() {
             if (!navigator.onLine) {
@@ -866,7 +962,9 @@
                     attemptsMap: [...attemptsMap],
                     wrongHistory: [...wrongHistory],
                     topic: topicSelect.value,
-                    metadataHTML: metadata.innerHTML
+                    metadataHTML: metadata.innerHTML,
+                    infoNoteHTML: infoPanelBody.innerHTML,
+                    infoBtnVisible: !infoBtn.classList.contains("d-none")
                 };
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
             } catch (e) { /* localStorage může být nedostupné, nevadí */ }
@@ -903,6 +1001,8 @@
                 loadTopics();
                 topicSelect.value = state.topic;
                 metadata.innerHTML = state.metadataHTML;
+                infoPanelBody.innerHTML = state.infoNoteHTML || "";
+                infoBtn.classList.toggle("d-none", !state.infoBtnVisible);
 
                 uploadPanel.classList.add("d-none");
                 testPanel.classList.remove("d-none");
@@ -956,6 +1056,9 @@
         }
 
         // VALIDACE STRUKTURY JSON
+        // Kontroluje jen fatální problémy (soubor/pole otázek jako celek).
+        // Jednotlivé vadné otázky NEBLOKUJÍ načtení celého souboru - ty řeší
+        // sanitizeQuestions() níže, která je z výsledné sady jen vyřadí.
         function validateQuestionsData(data) {
             if (Array.isArray(data) || typeof data !== "object" || data === null) {
                 return { type: "warning", message: "Soubor má neplatný formát." };
@@ -965,18 +1068,45 @@
                 return { type: "warning", message: "Soubor neobsahuje žádné otázky." };
             }
 
-            let requiredFields = ["topic", "question", "A", "B", "C", "correct"];
-
-            let isValidQuestion = q =>
-                typeof q === "object" && q !== null &&
-                requiredFields.every(field => q[field] !== undefined && q[field] !== null && q[field] !== "") &&
-                ["A", "B", "C"].includes(q.correct);
-
-            if (!data.questions.every(isValidQuestion)) {
-                return { type: "warning", message: "Některé otázky mají neúplný nebo neplatný formát." };
-            }
-
             return null;
+        }
+
+        // ROZDĚLÍ OTÁZKY NA PLATNÉ A VADNÉ
+        // Univerzální chování: pár špatně vyplněných otázek (prázdné pole,
+        // překlep v "correct" apod.) nemá shodit načtení celého souboru -
+        // takové otázky se prostě přeskočí a zbytek se normálně použije.
+        let requiredFields = ["topic", "question", "A", "B", "C", "correct"];
+
+        function describeQuestionProblem(q) {
+            if (typeof q !== "object" || q === null) {
+                return "otázka není platný objekt";
+            }
+            let missing = requiredFields.filter(field =>
+                q[field] === undefined || q[field] === null || q[field] === ""
+            );
+            if (missing.length > 0) {
+                return `chybí/prázdné pole: ${missing.join(", ")}`;
+            }
+            if (!["A", "B", "C"].includes(q.correct)) {
+                return `pole "correct" má neplatnou hodnotu: "${q.correct}"`;
+            }
+            return null;
+        }
+
+        function sanitizeQuestions(questions) {
+            let valid = [];
+            let skipped = [];
+
+            questions.forEach((q, index) => {
+                let problem = describeQuestionProblem(q);
+                if (problem) {
+                    skipped.push({ index, problem, question: (q && q.question) || "(bez znění)" });
+                } else {
+                    valid.push(q);
+                }
+            });
+
+            return { valid, skipped };
         }
 
         // PLYNULÝ PŘECHOD MEZI PANELY (FLIP)
@@ -1029,12 +1159,32 @@
                     return;
                 }
 
-                allQuestions = data.questions;
+                let { valid, skipped } = sanitizeQuestions(data.questions);
+
+                if (valid.length === 0) {
+                    showToast("Žádná otázka v souboru nemá platný formát.", "warning");
+                    resetDropzone();
+                    return;
+                }
+
+                if (skipped.length > 0) {
+                    console.warn(`Přeskočeno ${skipped.length} otázek s neplatným formátem:`, skipped);
+                }
+
+                allQuestions = valid;
 
                 showMetadata(data, file.name);
                 loadTopics();
 
-                showToast("Otázky byly úspěšně načteny.", "success");
+                if (skipped.length > 0) {
+                    showToast(
+                        `Načteno ${valid.length} otázek. ${skipped.length} otázka(y) měla neúplný/neplatný formát a byla přeskočena (podrobnosti v konzoli).`,
+                        "warning",
+                        6000
+                    );
+                } else {
+                    showToast("Otázky byly úspěšně načteny.", "success");
+                }
 
                 setTimeout(() => {
                     transitionPanels(uploadPanel, testPanel);
@@ -1057,6 +1207,13 @@
                                 <div>Autor: <b>${data.author}</b></div>
                                 <div>${data.description}</div>
                                 ${fileName ? `<div class="text-muted"><i class="bi bi-file-earmark-text"></i> ${fileName}</div>` : ""}`;
+
+            // POZNÁMKA AUTORA - zobrazí se přes tlačítko "Info" a samostatný panel
+            // (mimo metadata div, aby byla dostupná i na mobilu, kde je #metadata skryté)
+            infoPanelBody.innerHTML = data.note
+                ? String(data.note).replace(/\n/g, "<br>")
+                : "";
+            infoBtn.classList.toggle("d-none", !data.note);
         }
 
         // TÉMATA
@@ -1134,6 +1291,7 @@
                         entry.className = "list-group-item rounded mb-2";
                         entry.innerHTML = `
                             <div class="fw-bold mb-2">${index + 1}. ${item.question}</div>
+                            ${item.uncertain ? `<div class="badge text-bg-danger mb-2"><i class="bi bi-exclamation-triangle-fill"></i> Nejistá odpověď</div>` : ""}
                             <div class="text-success">
                                 <i class="bi bi-check-circle"></i> ${item.correctText}
                             </div>
@@ -1154,6 +1312,7 @@
         function renderQuestion() {
             questionBox.innerHTML = "";
             topicBadge.textContent = currentQuestion.topic;
+            uncertainBadge.classList.toggle("d-none", !currentQuestion.uncertain);
 
             updateHeader();
 
@@ -1168,6 +1327,14 @@
                 repeatBadge.className = "badge text-bg-warning mb-2 repeat-badge";
                 repeatBadge.innerHTML = `<i class="bi bi-arrow-repeat"></i> Opakování otázky`;
                 body.appendChild(repeatBadge);
+            }
+
+            if (currentQuestion.uncertain) {
+                let uncertainAlert = document.createElement("div");
+                uncertainAlert.className = "alert alert-danger d-flex align-items-center gap-2 py-2 mb-3 uncertain-alert";
+                uncertainAlert.innerHTML = `<i class="bi bi-exclamation-triangle-fill fs-5"></i>
+                    <span>Pozor, u této otázky si autor testu není 100% jistý správností odpovědi.</span>`;
+                body.appendChild(uncertainAlert);
             }
 
             let title = document.createElement("h5");
@@ -1262,7 +1429,8 @@
                 if (!wrongHistory.has(currentQuestion.__id)) {
                     wrongHistory.set(currentQuestion.__id, {
                         question: currentQuestion.question,
-                        correctText: correctText
+                        correctText: correctText,
+                        uncertain: !!currentQuestion.uncertain
                     });
                 }
             }
@@ -1317,10 +1485,30 @@
             showCorrectAnswers();
         });
 
+        // POZNÁMKA AUTORA - stejný princip jako "Správné odpovědi" (přepnutí panelu)
+        infoBtn.addEventListener("click", () => {
+            testPanel.classList.add("d-none");
+            infoPanel.classList.remove("d-none");
+        });
+
         // OKAMŽITÉ HLEDÁNÍ
         answerSearch.addEventListener("input", () => {
             showCorrectAnswers();
         });
+
+        // NORMALIZACE TEXTU PRO VYHLEDÁVÁNÍ
+        // Odstraní diakritiku (háčky/čárky) a interpunkci, sjednotí velikost písmen
+        // a vícenásobné mezery - díky tomu najde shodu i když uživatel píše rychle
+        // bez diakritiky nebo s/bez interpunkce (např. "pece" najde i "péče,").
+        function normalizeSearchText(str) {
+            return (str || "")
+                .toLowerCase()
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")   // odstranění diakritických znamének
+                .replace(/[^\p{L}\p{N}\s]/gu, " ") // interpunkce (.,?!:;- atd.) -> mezera
+                .replace(/\s+/g, " ")
+                .trim();
+        }
 
         function showCorrectAnswers() {
             answersList.innerHTML = "";
@@ -1334,10 +1522,15 @@
                 list = allQuestions.filter(q => q.topic === topic);
             }
 
-            let search = answerSearch.value.toLowerCase().trim();
+            let search = normalizeSearchText(answerSearch.value);
 
             if (search) {
-                list = list.filter(q => q.question.toLowerCase().includes(search));
+                // hledá všechna zadaná slova bez ohledu na jejich pořadí v otázce
+                let terms = search.split(" ").filter(Boolean);
+                list = list.filter(q => {
+                    let normQuestion = normalizeSearchText(q.question);
+                    return terms.every(term => normQuestion.includes(term));
+                });
             }
 
             if (list.length === 0) {
@@ -1355,6 +1548,7 @@
                 item.className = "list-group-item rounded mb-2";
                 item.innerHTML = `
             <div class="fw-bold mb-2">${index + 1}. ${q.question}</div>
+            ${q.uncertain ? `<div class="badge text-bg-danger mb-2"><i class="bi bi-exclamation-triangle-fill"></i> Nejistá odpověď</div>` : ""}
             <div class="text-success">
                 <i class="bi bi-check-circle"></i> ${q[q.correct]}
             </div>
@@ -1366,6 +1560,11 @@
         // ZPĚT NA TEST
         backBtn.addEventListener("click", () => {
             answersPanel.classList.add("d-none");
+            testPanel.classList.remove("d-none");
+        });
+
+        infoBackBtn.addEventListener("click", () => {
+            infoPanel.classList.add("d-none");
             testPanel.classList.remove("d-none");
         });
 
@@ -1449,11 +1648,14 @@
 
                 resetDropzone();
                 metadata.innerHTML = "";
+                infoPanelBody.innerHTML = "";
+                infoBtn.classList.add("d-none");
                 questionBox.innerHTML = "";
                 info.innerHTML = "";
                 progress.style.width = "0%";
 
                 answersPanel.classList.add("d-none");
+                infoPanel.classList.add("d-none");
 
                 if (!testPanel.classList.contains("d-none")) {
                     transitionPanels(testPanel, uploadPanel);
