@@ -651,7 +651,6 @@
 
     <div id="app" class="container">
 
-        <!-- NAHRÁNÍ JSON -->
         <div id="uploadPanel" class="card shadow-sm position-relative">
             <div class="upload-panel-actions">
                 <button id="uploadThemeBtn" type="button"
@@ -668,8 +667,6 @@
                     data-label="Přetáhni soubor sem nebo klikni pro výběr" data-onchange="handleDropzoneFiles">
                 </div>
 
-                <!-- ZÁLOŽNÍ VSTUP - zobrazí se pouze pokud se BSForge dropzone
-                     nestihne včas inicializovat (např. výpadek/pomalé CDN) -->
                 <div id="fallbackUpload" class="d-none mt-2">
                     <div class="alert alert-warning small mb-2 text-start">
                         <i class="bi bi-exclamation-triangle"></i>
@@ -682,7 +679,6 @@
             </div>
         </div>
 
-        <!-- TEST -->
         <div id="testPanel" class="d-none">
 
             <div class="card shadow-sm mb-2 sticky-top">
@@ -732,7 +728,6 @@
             <div id="questionBox"></div>
         </div>
 
-        <!-- SPRÁVNÉ ODPOVĚDI -->
         <div id="answersPanel" class="d-none">
 
             <div class="card shadow-sm">
@@ -754,7 +749,6 @@
             </div>
         </div>
 
-        <!-- POZNÁMKA AUTORA -->
         <div id="infoPanel" class="d-none">
 
             <div class="card shadow-sm">
@@ -780,7 +774,6 @@
         </footer>
     </div>
 
-    <!-- POTVRZENÍ RESETU -->
     <div class="modal fade" id="confirmActionModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -842,7 +835,6 @@
         const uploadIcon = document.getElementById("uploadIcon");
         const uploadThemeBtn = document.getElementById("uploadThemeBtn");
 
-        // LOADING OVERLAY - zmizí, jakmile se stránka (vč. CSS/JS z CDN) plně načte
         const loadingOverlay = document.getElementById("loadingOverlay");
         const loaderSlowMsg = document.getElementById("loaderSlowMsg");
         const loaderRetryBtn = document.getElementById("loaderRetryBtn");
@@ -858,7 +850,6 @@
             window.addEventListener("load", hideLoadingOverlay);
         }
 
-        // Pokud načítání trvá nezvykle dlouho (pomalé/nestabilní připojení), nabídneme nápovědu a reload
         if (!navigator.onLine) {
             loaderSlowMsg.classList.add("show");
         } else {
@@ -868,10 +859,6 @@
 
         loaderRetryBtn.addEventListener("click", () => location.reload());
 
-        // BEZPEČNÉ OVLÁDÁNÍ DROPZONE - komponenta se inicializuje asynchronně
-        // (loader.js ji dotahuje z CDN), takže _bsforge API nemusí být v okamžiku
-        // volání ještě k dispozici. Vždy si element vyhledáme znovu (po inicializaci
-        // BSForge nahrazuje původní <div> novým elementem se stejným id).
         function getDropzoneApi() {
             const el = document.getElementById("jsonDropzone");
             return el && el._bsforge ? el._bsforge : null;
@@ -888,9 +875,6 @@
             if (api) api.reset();
         }
 
-        // ZÁLOŽNÍ NAHRÁVÁNÍ - pokud se BSForge dropzone (natahuje se z CDN)
-        // do pár sekund neinicializuje, např. kvůli výpadku/pomalému CDN,
-        // nabídneme obyčejný <input type="file">, aby appka zůstala použitelná.
         const fallbackUpload = document.getElementById("fallbackUpload");
         const fallbackFileInput = document.getElementById("fallbackFileInput");
         const fallbackRetryLink = document.getElementById("fallbackRetryLink");
@@ -911,19 +895,16 @@
             dropzoneCheckAttempts++;
 
             if (getDropzoneApi()) {
-                // BSForge se v pořádku načetl, záložní vstup není potřeba
                 clearInterval(dropzoneCheckInterval);
                 return;
             }
 
-            // Po ~8 sekundách (16 x 500ms) bez inicializace ukážeme fallback
             if (dropzoneCheckAttempts >= 16) {
                 clearInterval(dropzoneCheckInterval);
                 fallbackUpload.classList.remove("d-none");
             }
         }, 500);
 
-        // OFFLINE / ONLINE STAV
         function updateConnectionStatus() {
             if (!navigator.onLine) {
                 offlineBanner.classList.remove("d-none");
@@ -948,7 +929,6 @@
 
         updateConnectionStatus();
 
-        // ULOŽENÍ / OBNOVENÍ PRŮBĚHU TESTU
         function saveState() {
             try {
                 let state = {
@@ -1015,7 +995,6 @@
             }
         }
 
-        // ZOBRAZENÍ TOASTU
         function showToast(message, type = "danger", duration = 5000) {
             let meta = {
                 danger: { icon: "bi-exclamation-octagon-fill", title: "Chyba" },
@@ -1055,10 +1034,6 @@
             }));
         }
 
-        // VALIDACE STRUKTURY JSON
-        // Kontroluje jen fatální problémy (soubor/pole otázek jako celek).
-        // Jednotlivé vadné otázky NEBLOKUJÍ načtení celého souboru - ty řeší
-        // sanitizeQuestions() níže, která je z výsledné sady jen vyřadí.
         function validateQuestionsData(data) {
             if (Array.isArray(data) || typeof data !== "object" || data === null) {
                 return { type: "warning", message: "Soubor má neplatný formát." };
@@ -1071,10 +1046,6 @@
             return null;
         }
 
-        // ROZDĚLÍ OTÁZKY NA PLATNÉ A VADNÉ
-        // Univerzální chování: pár špatně vyplněných otázek (prázdné pole,
-        // překlep v "correct" apod.) nemá shodit načtení celého souboru -
-        // takové otázky se prostě přeskočí a zbytek se normálně použije.
         let requiredFields = ["topic", "question", "A", "B", "C", "correct"];
 
         function describeQuestionProblem(q) {
@@ -1109,7 +1080,6 @@
             return { valid, skipped };
         }
 
-        // PLYNULÝ PŘECHOD MEZI PANELY (FLIP)
         function transitionPanels(hidePanel, showPanel) {
             hidePanel.classList.add("panel-flip-out");
             setTimeout(() => {
@@ -1121,8 +1091,6 @@
             }, 400);
         }
 
-        // NAČTENÍ JSON - voláno automaticky přes data-onchange="handleDropzoneFiles"
-        // BSForge dropzone komponentou (musí být globální funkce, viz dokumentace dropzone.js)
         function handleDropzoneFiles(files) {
             let file = files[files.length - 1];
 
@@ -1135,7 +1103,7 @@
             }
 
             uploadIcon.classList.remove("icon-bounce");
-            void uploadIcon.offsetWidth; // restart animace
+            void uploadIcon.offsetWidth;
             uploadIcon.classList.add("icon-bounce");
 
             let reader = new FileReader();
@@ -1200,7 +1168,6 @@
             reader.readAsText(file);
         }
 
-        // INFO
         function showMetadata(data, fileName) {
             metadata.innerHTML = `<div>Verze: <b>${data.version}</b></div>
                                 <div>Datum: <b>${data.date}</b></div>
@@ -1208,15 +1175,12 @@
                                 <div>${data.description}</div>
                                 ${fileName ? `<div class="text-muted"><i class="bi bi-file-earmark-text"></i> ${fileName}</div>` : ""}`;
 
-            // POZNÁMKA AUTORA - zobrazí se přes tlačítko "Info" a samostatný panel
-            // (mimo metadata div, aby byla dostupná i na mobilu, kde je #metadata skryté)
             infoPanelBody.innerHTML = data.note
                 ? String(data.note).replace(/\n/g, "<br>")
                 : "";
             infoBtn.classList.toggle("d-none", !data.note);
         }
 
-        // TÉMATA
         function loadTopics() {
             topicSelect.innerHTML = `<option value="all">Všechna témata</option>`;
             let topics = [...new Set(allQuestions.map(q => q.topic))];
@@ -1234,7 +1198,6 @@
             startTest();
         });
 
-        // START TESTU
         function startTest() {
             let topic = topicSelect.value;
             if (topic === "all") {
@@ -1243,7 +1206,6 @@
                 questions = structuredClone(allQuestions.filter(q => q.topic === topic));
             }
 
-            // KAŽDÉ OTÁZCE PŘIŘADÍME UNIKÁTNÍ ID, ABY ŠLO POZNAT OPAKOVÁNÍ A SPRÁVNĚ POČÍTAT POSTUP
             questions.forEach((q, i) => q.__id = i + "_" + Math.random().toString(36).slice(2));
 
             shuffle(questions);
@@ -1258,7 +1220,6 @@
             showQuestion();
         }
 
-        // ZOBRAZENÍ OTÁZKY (posune frontu a vykreslí)
         function showQuestion() {
             if (questions.length === 0) {
                 questionBox.innerHTML = "";
@@ -1308,7 +1269,6 @@
             renderQuestion();
         }
 
-        // VYKRESLENÍ AKTUÁLNÍ OTÁZKY (bez posunu fronty - používá se i při obnovení stavu)
         function renderQuestion() {
             questionBox.innerHTML = "";
             topicBadge.textContent = currentQuestion.topic;
@@ -1383,7 +1343,6 @@
             saveState();
         }
 
-        // KONTROLA ODPOVĚDI
         function checkAnswer(card) {
             let selected = card.querySelector("input[name='answer']:checked");
             if (!selected) {
@@ -1425,7 +1384,6 @@
                 attemptsMap.set(currentQuestion.__id, (attemptsMap.get(currentQuestion.__id) || 0) + 1);
                 questions.push(currentQuestion);
 
-                // ULOŽÍME DO HISTORIE CHYB - ZŮSTANE I POKUD OTÁZKU POZDĚJI ZODPOVÍ SPRÁVNĚ
                 if (!wrongHistory.has(currentQuestion.__id)) {
                     wrongHistory.set(currentQuestion.__id, {
                         question: currentQuestion.question,
@@ -1446,7 +1404,6 @@
             card.querySelector(".card-body").appendChild(next);
         }
 
-        // AKTUALIZACE HLAVIČKY - POČET OTÁZEK, ZBÝVÁ, SKÓRE I PROGRESS BAR
         function updateHeader() {
             let answeredCount = totalQuestions - remainingIds.size;
             let done = correct + wrong;
@@ -1463,7 +1420,6 @@
 
             progress.style.width = (answeredCount / totalQuestions * 100) + "%";
 
-            // BARVA POSTUPU PODLE ÚSPĚŠNOSTI (volitelné v Nastavení)
             progress.classList.remove("bg-success", "bg-warning", "bg-danger");
 
             if (done > 0) {
@@ -1477,7 +1433,6 @@
             }
         }
 
-        // SPRÁVNÉ ODPOVĚDI
         showAnswersBtn.addEventListener("click", () => {
             testPanel.classList.add("d-none");
             answersPanel.classList.remove("d-none");
@@ -1485,27 +1440,21 @@
             showCorrectAnswers();
         });
 
-        // POZNÁMKA AUTORA - stejný princip jako "Správné odpovědi" (přepnutí panelu)
         infoBtn.addEventListener("click", () => {
             testPanel.classList.add("d-none");
             infoPanel.classList.remove("d-none");
         });
 
-        // OKAMŽITÉ HLEDÁNÍ
         answerSearch.addEventListener("input", () => {
             showCorrectAnswers();
         });
 
-        // NORMALIZACE TEXTU PRO VYHLEDÁVÁNÍ
-        // Odstraní diakritiku (háčky/čárky) a interpunkci, sjednotí velikost písmen
-        // a vícenásobné mezery - díky tomu najde shodu i když uživatel píše rychle
-        // bez diakritiky nebo s/bez interpunkce (např. "pece" najde i "péče,").
         function normalizeSearchText(str) {
             return (str || "")
                 .toLowerCase()
                 .normalize("NFD")
-                .replace(/[\u0300-\u036f]/g, "")   // odstranění diakritických znamének
-                .replace(/[^\p{L}\p{N}\s]/gu, " ") // interpunkce (.,?!:;- atd.) -> mezera
+                .replace(/[\u0300-\u036f]/g, "")
+                .replace(/[^\p{L}\p{N}\s]/gu, " ")
                 .replace(/\s+/g, " ")
                 .trim();
         }
@@ -1525,7 +1474,6 @@
             let search = normalizeSearchText(answerSearch.value);
 
             if (search) {
-                // hledá všechna zadaná slova bez ohledu na jejich pořadí v otázce
                 let terms = search.split(" ").filter(Boolean);
                 list = list.filter(q => {
                     let normQuestion = normalizeSearchText(q.question);
@@ -1557,7 +1505,6 @@
             });
         }
 
-        // ZPĚT NA TEST
         backBtn.addEventListener("click", () => {
             answersPanel.classList.add("d-none");
             testPanel.classList.remove("d-none");
@@ -1568,18 +1515,11 @@
             testPanel.classList.remove("d-none");
         });
 
-        // DARK MODE
-        // NASTAVENÍ VZHLEDU (SVĚTLÝ/TMAVÝ) - sdílená logika pro obě theme tlačítka
-        // (v test panelu i v nahrávacím panelu) a pro automatický režim podle systému
         function applyTheme(isDark) {
             document.body.classList.toggle("dark", isDark);
             document.body.classList.toggle("bg-light", !isDark);
             document.body.classList.toggle("bg-dark", isDark);
 
-            // BSForge komponenty (dropzone, otp...) stylují se přes Bootstrap
-            // proměnné var(--bs-*), které se přepínají atributem data-bs-theme
-            // na <html> - bez tohoto řádku by zůstaly ve světlém vzhledu i po
-            // přepnutí do tmavého režimu.
             document.documentElement.setAttribute("data-bs-theme", isDark ? "dark" : "light");
 
             document.querySelectorAll(".theme-toggle-btn i").forEach(icon => {
@@ -1606,7 +1546,6 @@
             btn.addEventListener("click", toggleTheme);
         });
 
-        // ZRUŠIT TEST - VRÁTÍ NA NAHRÁNÍ NOVÉHO SOUBORU
         cancelBtn.addEventListener("click", () => {
             pendingAction = "cancel";
             confirmActionTitle.textContent = "Opravdu zrušit test?";
@@ -1616,7 +1555,6 @@
             new bootstrap.Modal(confirmActionModalEl).show();
         });
 
-        // OBNOVIT - RESTARTUJE AKTUÁLNÍ TEST OD ZAČÁTKU (STEJNÉ OTÁZKY)
         restartBtn.addEventListener("click", () => {
             pendingAction = "restart";
             confirmActionTitle.textContent = "Opravdu restartovat test?";
@@ -1669,13 +1607,11 @@
             pendingAction = null;
         });
 
-        // OBNOVENÍ MOTIVU A ROZPRACOVANÉHO TESTU PO NAČTENÍ STRÁNKY
         (function init() {
             applySystemTheme();
             loadState();
         })();
 
-        // PROMÍCHÁNÍ
         function shuffle(arr) {
             for (let i = arr.length - 1; i > 0; i--) {
                 let j = Math.floor(Math.random() * (i + 1));
