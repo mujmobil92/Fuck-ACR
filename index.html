@@ -22,7 +22,7 @@
             box-sizing: border-box;
         }
 
-        /* LOADING OVERLAY - vlastní styly, nezávislé na Bootstrapu (musí fungovat, i než se CDN načte) */
+
         #loadingOverlay {
             position: fixed;
             inset: 0;
@@ -147,7 +147,7 @@
             border-color: #ffc107;
         }
 
-        /* DARK MODE */
+
         .dark {
             background: #121212 !important;
             color: #eee;
@@ -204,7 +204,7 @@
             border-color: #777;
         }
 
-        /* HORNÍ LIŠTA */
+
         .top-bar {
             display: flex;
             justify-content: space-between;
@@ -232,7 +232,7 @@
             gap: 15px;
         }
 
-        /* TOASTY */
+
         #toastContainer {
             position: fixed;
             top: 15px;
@@ -268,7 +268,7 @@
             background: rgba(255, 255, 255, .15);
         }
 
-        /* TOASTY - v tmavém režimu jsou výchozí Bootstrap barvy příliš svítivé, ztlumíme je */
+
         .dark .app-toast {
             background: #242424;
             box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .5);
@@ -303,13 +303,13 @@
             background: rgba(255, 255, 255, .1);
         }
 
-        /* MODÁLNÍ OKNO V TMAVÉM REŽIMU */
+
         .dark .modal-content {
             background: #1e1e1e;
             color: #eee;
         }
 
-        /* ANIMACE */
+
         @keyframes fadeInUp {
             from {
                 opacity: 0;
@@ -383,7 +383,7 @@
             transition: width .4s ease;
         }
 
-        /* PŘECHOD MEZI PANELY (FLIP) */
+
         #app {
             perspective: 1200px;
         }
@@ -420,7 +420,7 @@
             }
         }
 
-        /* STAVY NAHRÁVACÍHO POLE */
+
         .input-error {
             border-color: #dc3545 !important;
             box-shadow: 0 0 0 .2rem rgba(220, 53, 69, .25) !important;
@@ -460,17 +460,17 @@
             animation: fadeInUp .3s ease;
         }
 
-        /* STICKY HLAVIČKA */
+
         .sticky-top {
             z-index: 1030;
         }
 
-        /* ZNÁMKA OPAKOVANÉ OTÁZKY */
+
         .repeat-badge {
             animation: fadeInUp .3s ease;
         }
 
-        /* IKONOVÁ TLAČÍTKA V ROHU (nahrávací panel) - stejný vzhled na PC i mobilu */
+
         .upload-panel-actions {
             position: absolute;
             top: 12px;
@@ -496,18 +496,17 @@
             line-height: 1;
         }
 
-        /* PATIČKA */
+
         #appFooter {
             opacity: .7;
         }
 
-        /* Ikona přidaná jen kvůli mobilnímu zobrazení - na PC se nezobrazuje,
-           aby vzhled desktopu zůstal přesně stejný jako dřív */
+
         .mobile-only-icon {
             display: none;
         }
 
-        /* MOBIL */
+
         @media(max-width:576px) {
             body {
                 align-items: flex-start !important;
@@ -522,7 +521,7 @@
                 padding: 10px 12px !important;
             }
 
-            /* Horní lišta zůstane v jednom řádku - šetří výšku obrazovky */
+
             .top-bar {
                 flex-direction: row;
                 align-items: center;
@@ -552,7 +551,7 @@
                 gap: 6px;
             }
 
-            /* Tlačítka jen jako ikony - bez textu, menší a čtvercová */
+
             .top-actions .btn {
                 width: 34px;
                 height: 34px;
@@ -583,7 +582,7 @@
                 display: none;
             }
 
-            /* Metadata souboru (verze/datum/autor/popis) na testu nejsou potřeba - šetří místo */
+
             #metadata {
                 display: none;
             }
@@ -770,7 +769,7 @@
 
         <footer id="appFooter" class="text-center text-muted small mt-3 mb-2">
             &copy; 2026 &middot; verze 1.4
-            
+
         </footer>
     </div>
 
@@ -947,7 +946,7 @@
                     infoBtnVisible: !infoBtn.classList.contains("d-none")
                 };
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-            } catch (e) { /* localStorage může být nedostupné, nevadí */ }
+            } catch (e) {}
         }
 
         function clearSavedState() {
