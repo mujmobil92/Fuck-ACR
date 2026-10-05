@@ -221,8 +221,33 @@
             display: flex;
             align-items: center;
             gap: 6px;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
+            flex: 1 1 auto;
             min-width: 0;
+            overflow: hidden;
+        }
+
+        #topicBadge {
+            display: block;
+            min-width: 0;
+            max-width: 100%;
+            flex: 0 1 auto;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        #uncertainBadge {
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+
+        .top-actions {
+            flex-shrink: 0;
+        }
+
+        .top-actions .btn {
+            white-space: nowrap;
         }
 
         .test-header-info {
@@ -529,10 +554,6 @@
             }
 
             #topicBadge {
-                max-width: 42%;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
                 font-size: 12px;
             }
 
@@ -768,7 +789,7 @@
         </div>
 
         <footer id="appFooter" class="text-center text-muted small mt-3 mb-2">
-            &copy; 2026 &middot; verze 1.4
+            &copy; 2026 &middot; verze 1.5
 
         </footer>
     </div>
@@ -1271,6 +1292,7 @@
         function renderQuestion() {
             questionBox.innerHTML = "";
             topicBadge.textContent = currentQuestion.topic;
+            topicBadge.title = currentQuestion.topic;
             uncertainBadge.classList.toggle("d-none", !currentQuestion.uncertain);
 
             updateHeader();
