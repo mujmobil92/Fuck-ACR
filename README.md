@@ -2,8 +2,6 @@
 
 [Odkaz na aplikaci](https://mujmobil92.github.io/Fuck-ACR/)
 
- **Verze aplikace:** 1.4
-
 :)
 
 ## Formát JSON souboru s otázkami
