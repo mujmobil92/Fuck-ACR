@@ -30,12 +30,23 @@
       "C": "Odpověď C",
       "correct": "B",
       "uncertain": true
+    },
+    {
+      "topic": "Název tématu",
+      "question": "Otázka se čtyřmi (nebo více) odpověďmi?",
+      "A": "Odpověď A",
+      "B": "Odpověď B",
+      "C": "Odpověď C",
+      "D": "Odpověď D",
+      "correct": "D"
     }
   ]
 }
 ```
 
-**Pole `correct`** musí obsahovat `"A"`, `"B"` nebo `"C"` a určuje, která z odpovědí je správná.
+**Odpovědi** se zapisují jako pole pojmenovaná velkými písmeny `"A"`, `"B"`, `"C"`, `"D"`, `"E"`, … (až `"Z"`). Počet odpovědí může být u každé otázky jiný – minimum jsou 2 odpovědi. Prázdné odpovědi (`""`) se ignorují. Při zobrazení otázky se odpovědi vždy náhodně zamíchají, takže písmeno v JSON souboru neurčuje pořadí na obrazovce.
+
+**Pole `correct`** obsahuje písmeno správné odpovědi (např. `"A"`, `"C"`, `"D"`). Musí odpovídat některé z odpovědí, které otázka skutečně má – jinak se otázka při načtení přeskočí (podrobnosti se vypíšou do konzole prohlížeče).
 
 **Pole `uncertain`** je volitelné (`true`/`false`) a patří ke konkrétní otázce. Pokud u ní chybí, bere se jako `false` – staré JSON soubory bez tohoto pole tedy fungují beze změny. Nastavíš ho jen u těch otázek, kde si nejsi 100% jistý/á, že je uvedená odpověď správně – u testu i u seznamu správných odpovědí se pak vedle otázky zobrazí červený varovný štítek "Nejistá odpověď".
 

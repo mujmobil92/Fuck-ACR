@@ -789,7 +789,7 @@
         </div>
 
         <footer id="appFooter" class="text-center text-muted small mt-3 mb-2">
-            &copy; 2026 &middot; verze 1.5
+            &copy; 2026 &middot; verze 1.6
 
         </footer>
     </div>
@@ -1066,20 +1066,34 @@
             return null;
         }
 
-        let requiredFields = ["topic", "question", "A", "B", "C", "correct"];
+        let requiredFields = ["topic", "question", "correct"];
+        const MIN_ANSWERS = 2;
+
+        function isFilled(value) {
+            return value !== undefined && value !== null && String(value).trim() !== "";
+        }
+
+        // Vrátí klíče odpovědí (A, B, C, D, E, …) v abecedním pořadí – jen ty, které mají vyplněný text.
+        function getAnswerKeys(q) {
+            return Object.keys(q)
+                .filter(key => /^[A-Z]$/.test(key) && isFilled(q[key]))
+                .sort();
+        }
 
         function describeQuestionProblem(q) {
             if (typeof q !== "object" || q === null) {
                 return "otázka není platný objekt";
             }
-            let missing = requiredFields.filter(field =>
-                q[field] === undefined || q[field] === null || q[field] === ""
-            );
+            let missing = requiredFields.filter(field => !isFilled(q[field]));
             if (missing.length > 0) {
                 return `chybí/prázdné pole: ${missing.join(", ")}`;
             }
-            if (!["A", "B", "C"].includes(q.correct)) {
-                return `pole "correct" má neplatnou hodnotu: "${q.correct}"`;
+            let keys = getAnswerKeys(q);
+            if (keys.length < MIN_ANSWERS) {
+                return `otázka musí mít alespoň ${MIN_ANSWERS} odpovědi (nalezeno: ${keys.length})`;
+            }
+            if (!keys.includes(q.correct)) {
+                return `pole "correct" má hodnotu "${q.correct}", ale taková odpověď v otázce není (dostupné: ${keys.join(", ")})`;
             }
             return null;
         }
@@ -1322,11 +1336,10 @@
             title.textContent = currentQuestion.question;
             title.className = "mb-3";
             body.appendChild(title);
-            let answers = [
-                currentQuestion.A,
-                currentQuestion.B,
-                currentQuestion.C
-            ];
+            let answers = getAnswerKeys(currentQuestion).map(key => ({
+                key,
+                text: currentQuestion[key]
+            }));
 
             shuffle(answers);
 
@@ -1337,12 +1350,12 @@
             send.innerHTML = `<i class="bi bi-check"></i> Odeslat`;
             send.disabled = true;
 
-            answers.forEach((text) => {
-                let id = "answer_" + Math.random();
+            answers.forEach(({ key, text }) => {
+                let id = "answer_" + Math.random().toString(36).slice(2);
                 let input = document.createElement("input");
                 input.type = "radio";
                 input.name = "answer";
-                input.value = text;
+                input.value = key;
                 input.id = id;
                 input.className = "answer-input";
                 input.addEventListener("change", () => { send.disabled = false; });
@@ -1371,19 +1384,20 @@
                 return;
             }
 
-            let correctText = currentQuestion[currentQuestion.correct];
+            let correctKey = currentQuestion.correct;
+            let correctText = currentQuestion[correctKey];
             let isCorrect = false;
             let labels = card.querySelectorAll(".answer-label");
 
             labels.forEach(label => {
                 let input = label.previousElementSibling;
 
-                if (input.value === correctText) {
+                if (input.value === correctKey) {
                     label.classList.add("show-correct");
                 }
 
                 if (input.checked) {
-                    if (input.value === correctText) {
+                    if (input.value === correctKey) {
                         label.classList.remove("show-correct");
                         label.classList.add("correct");
                         isCorrect = true;
